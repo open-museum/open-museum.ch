@@ -1,0 +1,116 @@
+version: '3'
+
+services:
+  reverse-proxy:
+    # The official v2 Traefik docker image
+    image: traefik:v2.2
+    environment:
+      - CF_API_EMAIL=${CLOUDFLARE_EMAIL}
+      - CF_API_KEY=${CLOUDFLARE_API_KEY}
+    command:
+      # Enables the web UI and tells Traefik to listen to docker
+      - --api.insecure=true
+      - --providers.docker=true
+      - --log=true
+      - --log.level=INFO # (Default: error) DEBUG, INFO, WARN, ERROR, FATAL, PANIC
+      - --accessLog=true
+      - --accessLog.filePath=/traefik.log
+      - --certificatesResolvers.dns-cloudflare.acme.email=$CLOUDFLARE_EMAIL
+      - --certificatesResolvers.dns-cloudflare.acme.storage=acme.json
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge=true
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.provider=cloudflare
+      # LetsEncrypt Staging Server - uncomment when testing
+      # - --certificatesResolvers.dns-cloudflare.acme.caServer=https://acme-staging-v02.api.letsencrypt.org/directory
+      - --certificatesResolvers.dns-cloudflare.acme.dnsChallenge.resolvers=1.1.1.1:53,8.8.8.8:53
+      - --entryPoints.web.address=:80
+      - --entryPoints.websecure.address=:443
+    ports:
+      - 80:80
+      - 443:443
+      - 8080:8080
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./traefik/acme.json:/acme.json
+      - ./traefik/traefik.log:/traefik.log 
+    labels:
+      - traefik.http.routers.traefik-rtr.tls=true
+      - traefik.http.routers.traefik-rtr.tls.certresolver=dns-cloudflare # Comment out this line after first run of traefik to force the use of wildcard certs
+      - traefik.http.routers.traefik-rtr.tls.domains[0].main=open-museum.ch
+      - traefik.http.routers.traefik-rtr.tls.domains[0].sans=*.open-museum.ch
+
+  janus:
+    build:
+      context: janus
+    ports: #HOST:CONTAINER
+      - 2095:8188 #ws
+      - 2096:8989 #wss
+    restart: unless-stopped
+
+  web:
+    build: 
+      context: web
+    restart: unless-stopped
+    labels:
+      - traefik.http.routers.web.rule=Host(`open-museum.ch`)
+      - traefik.http.routers.web.tls=true
+      - traefik.http.routers.web.tls.certresolver=dns-cloudflare
+
+  web-dev:
+    build: 
+      context: web-dev
+    restart: unless-stopped
+    labels:
+      - traefik.http.routers.web-dev.rule=Host(`dev.open-museum.ch`)
+      - traefik.http.routers.web-dev.tls=true
+      - traefik.http.routers.web-dev.tls.certresolver=dns-cloudflare
+
+  web-staging:
+    build: 
+      context: web-staging
+    restart: unless-stopped
+    labels:
+      - traefik.http.routers.web-staging.rule=Host(`staging.open-museum.ch`)
+      - traefik.http.routers.web-staging.tls=true
+      - traefik.http.routers.web-staging.tls.certresolver=dns-cloudflare
+
+  minigame:
+    build: 
+      context: minigame
+    restart: unless-stopped
+    labels:
+      - traefik.http.routers.minigame.rule=Host(`minigame.open-museum.ch`)
+      - traefik.http.routers.minigame.tls=true
+      - traefik.http.routers.minigame.tls.certresolver=dns-cloudflare
+
+  omeka-web:
+    build:
+      context: omeka-web
+    volumes:
+      - ./omeka-web/files:/usr/src/omeka-s/files
+      - ./omeka-web/logs:/usr/src/omeka-s/logs
+      - ./omeka-web/modules:/usr/src/omeka-s/modules
+      - ./omeka-web/themes:/usr/src/omeka-s/themes
+    environment:
+      - EMAIL_HOST=${EMAIL_HOST}
+      - EMAIL_PORT=${EMAIL_PORT}
+      - EMAIL_USER=${EMAIL_USER}
+      - EMAIL_PASSWORD=${EMAIL_PASSWORD}
+      - EMAIL_CONNECTION_TYPE=${EMAIL_CONNECTION_TYPE}
+    depends_on:
+      - omeka-db
+    restart: unless-stopped
+    labels:
+      - traefik.http.routers.omeka-web.rule=Host(`collections.open-museum.ch`)
+      - traefik.http.routers.omeka-web.tls=true
+      - traefik.http.routers.omeka-web.tls.certresolver=dns-cloudflare
+
+  omeka-db:
+    image: mariadb:10.4
+    restart: always
+    volumes:
+      - ./omeka-db:/var/lib/mysql
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MYSQL_ROOT_PASSWORD}
+      - MYSQL_DATABASE=${MYSQL_DATABASE}
+      - MYSQL_USER=${MYSQL_USER}
+      - MYSQL_PASSWORD=${MYSQL_PASSWORD}
