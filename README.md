@@ -2,8 +2,8 @@
 
 This repo makes all the magic of [open-museum.ch](https://open-museum.ch/):
 
-- [Sapper/Svelte](https://sapper.svelte.dev/) and [Janus Gateway](https://janus.conf.meetecho.com/) powered front end of [open-museum.ch](https://open-museum.ch/)
-- [Omeka S](https://omeka.org/s/) cultural heritage object management system [collections.open-museum.ch](https://collections.open-museum.ch/)
+- [Sapper/Svelte](https://github.com/open-museum/web), [d3shooter](https://github.com/open-museum/d3shooter) and [Janus Gateway](https://github.com/open-museum/janus-gateway-docker) powered front end of [open-museum.ch](https://open-museum.ch/)
+- [Omeka S](https://github.com/open-museum/omeka-s-docker) cultural heritage object management system [collections.open-museum.ch](https://collections.open-museum.ch/)
 - Reverse proxy from [Traefik](https://docs.traefik.io/) for the routing and securing of all traffic
 
 [<img src="android-chrome-512x512.png" align="right" width="100">](https://open-museum.github.io/open-museum.ch/)
