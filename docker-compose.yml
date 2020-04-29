@@ -1,4 +1,4 @@
-version: '3'
+version: "3"
 
 services:
   reverse-proxy:
@@ -31,7 +31,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - ./traefik/acme.json:/acme.json
-      - ./traefik/traefik.log:/traefik.log 
+      - ./traefik/traefik.log:/traefik.log
     labels:
       - traefik.http.routers.traefik-rtr.tls=true
       - traefik.http.routers.traefik-rtr.tls.certresolver=dns-cloudflare # Comment out this line after first run of traefik to force the use of wildcard certs
@@ -47,16 +47,23 @@ services:
     restart: unless-stopped
 
   web:
-    build: 
-      context: web
+    image: openmuseum/web:0.0.1
     restart: unless-stopped
     labels:
       - traefik.http.routers.web.rule=Host(`open-museum.ch`)
       - traefik.http.routers.web.tls=true
       - traefik.http.routers.web.tls.certresolver=dns-cloudflare
 
+  web-staging:
+    image: openmuseum/web:latest
+    restart: unless-stopped
+    labels:
+      - traefik.http.routers.web-staging.rule=Host(`staging.open-museum.ch`)
+      - traefik.http.routers.web-staging.tls=true
+      - traefik.http.routers.web-staging.tls.certresolver=dns-cloudflare
+
   web-dev:
-    build: 
+    build:
       context: web-dev
     restart: unless-stopped
     labels:
@@ -64,17 +71,8 @@ services:
       - traefik.http.routers.web-dev.tls=true
       - traefik.http.routers.web-dev.tls.certresolver=dns-cloudflare
 
-  web-staging:
-    build: 
-      context: web-staging
-    restart: unless-stopped
-    labels:
-      - traefik.http.routers.web-staging.rule=Host(`staging.open-museum.ch`)
-      - traefik.http.routers.web-staging.tls=true
-      - traefik.http.routers.web-staging.tls.certresolver=dns-cloudflare
-
   minigame:
-    build: 
+    build:
       context: minigame
     restart: unless-stopped
     labels:
