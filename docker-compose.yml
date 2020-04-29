@@ -72,7 +72,7 @@ services:
       - traefik.http.routers.web-dev.tls.certresolver=dns-cloudflare
 
   minigame:
-    image: openmuseum/minigame:latest
+    image: openmuseum/minigame:0.0.1
     restart: unless-stopped
     labels:
       - traefik.http.routers.minigame.rule=Host(`minigame.open-museum.ch`)
