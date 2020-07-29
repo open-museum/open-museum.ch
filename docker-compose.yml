@@ -47,7 +47,7 @@ services:
     restart: unless-stopped
 
   web:
-    image: openmuseum/web:0.0.6
+    image: openmuseum/web:0.0.7
     restart: unless-stopped
     labels:
       - traefik.http.routers.web.rule=Host(`open-museum.ch`)
