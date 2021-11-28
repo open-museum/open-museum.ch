@@ -1,5 +1,7 @@
 # [open-museum.ch](https://github.com/open-museum/open-museum.ch/)
 
+> ⚠️ This repository is outdated and has been archived. 
+
 This repo makes all the magic of [open-museum.ch](https://open-museum.ch/):
 
 - [Sapper/Svelte](https://github.com/open-museum/web), [d3shooter](https://github.com/open-museum/d3shooter) and [Janus Gateway](https://github.com/open-museum/janus-gateway-docker) powered front end of [open-museum.ch](https://open-museum.ch/)
